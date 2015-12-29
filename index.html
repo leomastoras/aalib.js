@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Aalib.js by mir3z</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Aalib.js</h1>
+        <h2>ASCII art library in JavaScript</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/mir3z/aalib.js/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/mir3z/aalib.js/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/mir3z/aalib.js" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a id="aalibjs" class="anchor" href="#aalibjs" aria-hidden="true"><span class="octicon octicon-link"></span></a>aalib.js</h1>
+
+<p>This library allows to automatically convert images and movies to <a href="https://en.wikipedia.org/wiki/ASCII_art">ASCII art</a>.</p>
+
+<p>It is written entirely in JavaScript and is intended to use in web browsers.</p>
+
+<h2>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span class="octicon octicon-link"></span></a>Examples</h2>
+
+<ul>
+<li><a href="https://cdn.rawgit.com/mir3z/aalib.js/master/examples/mona.html">Mona</a></li>
+<li><a href="https://cdn.rawgit.com/mir3z/aalib.js/master/examples/lenna.html">Lenna</a></li>
+<li><a href="https://cdn.rawgit.com/mir3z/aalib.js/master/examples/marylin.html">Marylin</a></li>
+<li><a href="https://cdn.rawgit.com/mir3z/aalib.js/master/examples/bbb.html">Big Buck Bunny</a></li>
+</ul>
+
+<p>If you have any troubles seeing examples, just clone the repository and browse them locally. </p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>The library uses streams to process images. This means that an image is firstly read and then passed through a stream.
+A stream consists of processors which can read data from its input, process, and write to output. Chaining processors 
+together makes a series of transformations which eventually lead to ASCII art. </p>
+
+<p>In general the stream has the following form:</p>
+
+<p><code>Reader</code> &gt;&gt; <code>Filter</code> &gt;&gt; <code>AA</code> &gt;&gt; <code>Filter</code> &gt;&gt; <code>Renderer</code></p>
+
+<p>This means what follows:</p>
+
+<ol>
+<li>
+<code>Reader</code> reads image (static or moving) and converts it to internal representation.</li>
+<li>(Optional) <code>Filter</code> (e.g. brightness or contrast) can be applied to the image from 1st step.</li>
+<li>
+<code>AA</code> transforms image from 2nd step to ASCII art.</li>
+<li>(Optional) Another <code>Filter</code> can be applied but in this step it is applied to ASCII art image.</li>
+<li>
+<code>Renderer</code> renders image from 4th step to given output.</li>
+</ol>
+
+<p>That is how it looks expressed in a code:</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-smi">aalib</span>.<span class="pl-smi">read</span>.<span class="pl-smi">image</span>.<span class="pl-en">fromURL</span>(<span class="pl-s"><span class="pl-pds">"</span>marylin.jpg<span class="pl-pds">"</span></span>)
+    .<span class="pl-en">pipe</span>(<span class="pl-smi">aalib</span>.<span class="pl-smi">filter</span>.<span class="pl-en">contrast</span>(<span class="pl-c1">0.9</span>))
+    .<span class="pl-en">pipe</span>(<span class="pl-smi">aalib</span>.<span class="pl-en">aa</span>({ width<span class="pl-k">:</span> <span class="pl-c1">530</span>, height<span class="pl-k">:</span> <span class="pl-c1">160</span> }))
+    .<span class="pl-en">pipe</span>(<span class="pl-smi">aalib</span>.<span class="pl-smi">filter</span>.<span class="pl-en">brightness</span>(<span class="pl-c1">10</span>))
+    .<span class="pl-en">pipe</span>(<span class="pl-smi">aalib</span>.<span class="pl-smi">render</span>.<span class="pl-en">html</span>({ el<span class="pl-k">:</span> <span class="pl-smi">document</span>.<span class="pl-en">querySelector</span>(<span class="pl-s"><span class="pl-pds">"</span>.aa-image<span class="pl-pds">"</span></span>) }))
+    .<span class="pl-en">end</span>();</pre></div>
+
+<p>See <a href="#api">API</a> section for more details on how processors work. </p>
+
+<h2>
+<a id="api" class="anchor" href="#api" aria-hidden="true"><span class="octicon octicon-link"></span></a>API</h2>
+
+<h3>
+<a id="readers" class="anchor" href="#readers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Readers</h3>
+
+<p>These are objects which allow to read from various sources and write to a stream.  </p>
+
+<h4>
+<a id="imagereader" class="anchor" href="#imagereader" aria-hidden="true"><span class="octicon octicon-link"></span></a>ImageReader</h4>
+
+<p>Exposed in <code>aalib.read.image</code></p>
+
+<p>It has two handy factory methods:</p>
+
+<ul>
+<li>
+<code>fromURL(<i>url:string</i>)</code> - creates <code>ImageReader</code> which reads from given URL and returns stream.</li>
+<li>
+<code>fromImg(<i>img:HTMLImageElement</i>)</code> - creates <code>ImageReader</code> which reads from given <code>HTMLImageElement</code> 
+and returns stream.</li>
+</ul>
+
+<h4>
+<a id="videoreader" class="anchor" href="#videoreader" aria-hidden="true"><span class="octicon octicon-link"></span></a>VideoReader</h4>
+
+<p>Exposed in <code>aalib.read.video</code></p>
+
+<p>It has two handy factory methods:</p>
+
+<ul>
+<li>
+<code>fromURL(<i>url:string</i>, <i>options:object</i>)</code> - creates <code>VideoReader</code> which reads from given URL 
+and returns stream/</li>
+<li>
+<code>fromVideoElement(<i>video:HTMLVideoElement</i>, <i>options:object</i>)</code> - creates <code>VideoReader</code> which 
+reads from given <code>HTMLVideoElement</code> and returns stream.</li>
+</ul>
+
+<p>Both methods accepts following options:</p>
+
+<ul>
+<li>
+<code>autoplay:boolean</code> - If <code>true</code>, start playing video automatically</li>
+</ul>
+
+<p><code>aalib.read.video</code></p>
+
+<h3>
+<a id="filters" class="anchor" href="#filters" aria-hidden="true"><span class="octicon octicon-link"></span></a>Filters</h3>
+
+<p>Filters are processors which changes every component of an image. When a filter is applied to a regular image it 
+changes a RGB value. When a filter is applied to ASCII art image it changes the only component the image
+has - intensity. Intensity is a value which tells whether part of an image should be rendered as a "dark" or "light" 
+character.</p>
+
+<h4>
+<a id="inverse" class="anchor" href="#inverse" aria-hidden="true"><span class="octicon octicon-link"></span></a>inverse</h4>
+
+<p><code>aalib.filter.inverse()</code></p>
+
+<p>This filter inverses each component of an image. By inversion I mean the following function: <code>f(x) = 255 - x</code> </p>
+
+<h4>
+<a id="linear" class="anchor" href="#linear" aria-hidden="true"><span class="octicon octicon-link"></span></a>linear</h4>
+
+<p><code>aalib.filter.linear(<i>a:number</i>, <i>b:number</i>)</code></p>
+
+<p>It applies linear transformation to every image component. The linear transformation is a function: <code>f(x) = ax + b</code></p>
+
+<h4>
+<a id="brightness" class="anchor" href="#brightness" aria-hidden="true"><span class="octicon octicon-link"></span></a>brightness</h4>
+
+<p><code>aalib.filter.brightness(<i>value:number</i>)</code></p>
+
+<p>It changes brightness of an image. This is a special case of linear filter where <code>a = 1</code>.</p>
+
+<h4>
+<a id="contrast" class="anchor" href="#contrast" aria-hidden="true"><span class="octicon octicon-link"></span></a>contrast</h4>
+
+<p><code>aalib.filter.contrast(<i>value:number</i>)</code></p>
+
+<p>It changes contrast of an image. This is a special case of linear filter where <code>b = 0</code>.</p>
+
+<h3>
+<a id="aa" class="anchor" href="#aa" aria-hidden="true"><span class="octicon octicon-link"></span></a>AA</h3>
+
+<p>This processor handles actual conversion to ASCII art image.</p>
+
+<p><code>aalib.aa(<i>options:object</i>)</code></p>
+
+<p>It accepts the following options:</p>
+
+<ul>
+<li>
+<code>width:number</code> - width (in characters) of target ASCII art image.</li>
+<li>
+<code>height:number</code> - height (in characters) of target ASCII art image.</li>
+<li>
+<code>colorful:boolean</code> - if <code>true</code>, colors of an original image are preserved. Every character in target image has a
+mean color of area it represents in an original image.</li>
+</ul>
+
+<h3>
+<a id="renderers" class="anchor" href="#renderers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Renderers</h3>
+
+<p>Renderers are used to output ASCII art image. They can render using different characters set. 
+By default two charsets are defined and exposed under <code>CHARSET</code> property of every renderer:</p>
+
+<ul>
+<li>
+<code>ASCII</code> - printable ASCII characters - range: . This is the default one.</li>
+<li>
+<code>SIMPLE</code> - characters from list <code>['.', ':', '*', 'I', '$', 'V', 'F', 'N', 'M']</code>.</li>
+</ul>
+
+<h4>
+<a id="htmlrenderer" class="anchor" href="#htmlrenderer" aria-hidden="true"><span class="octicon octicon-link"></span></a>HTMLRenderer</h4>
+
+<p><code>aalib.render.html(<i>options:object</i>)</code></p>
+
+<p>Renders ASCII art image as HTML element.</p>
+
+<p>Options:</p>
+
+<ul>
+<li>
+<code>tagName:string</code> - use this tag to render HTML element, default: <code>pre</code>.</li>
+<li>
+<code>el:HTMLElement</code> - if defined, use this element as render target. Otherwise create a new element defined in <code>tagName</code>.</li>
+<li>
+<code>fontFamily:string</code> - font used in rendering, default: <code>monospace</code>.</li>
+<li>
+<code>charset:string[]</code> - alphabet used in rendering, default: printable ASCII characters (range )</li>
+</ul>
+
+<h4>
+<a id="canvasrenderer" class="anchor" href="#canvasrenderer" aria-hidden="true"><span class="octicon octicon-link"></span></a>CanvasRenderer</h4>
+
+<p><code>aalib.render.canvas(<i>options:object</i>)</code></p>
+
+<p>Renders ASCII art image as Canvas element.</p>
+
+<p>Options:</p>
+
+<ul>
+<li>
+<code>fontSize:number</code> - defines font size, default: 7.</li>
+<li>
+<code>lineHeight:number</code> - defines line height, default: 7.</li>
+<li>
+<code>width:number</code> - defines canvas width in pixels, default: 400.</li>
+<li>
+<code>height:number</code> - defines canvas height in pixels, default: 300.</li>
+<li>
+<code>el:HTMLElement</code> - if defined, use this element as render target. Otherwise create a new one.</li>
+<li>
+<code>fontFamily:string</code> - font used in rendering, default: <code>monospace</code>.</li>
+<li>
+<code>charset:string[]</code> - alphabet used in rendering, default: <code>ASCII</code> charset.</li>
+</ul>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>The MIT License (MIT). Copyright (c) 2015 mirz (<a href="mailto:mirz.hq@gmail.com">mirz.hq@gmail.com</a>)</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
